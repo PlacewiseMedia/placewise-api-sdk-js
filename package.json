@@ -1,0 +1,28 @@
+{
+  "name": "placewise-api-sdk-js",
+  "version": "0.0.1",
+  "description": "Official JS client for Placewise REST API",
+  "main": "client.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PlacewiseMedia/placewise-api-sdk-js.git"
+  },
+  "keywords": [
+    "placewise",
+    "jsonapi",
+    "sdk",
+    "rest"
+  ],
+  "author": "Matt Morris",
+  "bugs": {
+    "url": "https://github.com/PlacewiseMedia/placewise-api-sdk-js/issues"
+  },
+  "homepage": "https://github.com/PlacewiseMedia/placewise-api-sdk-js#readme",
+  "dependencies": {
+    "blueimp-md5": "^2.3.0",
+    "superagent": "^2.0.0"
+  }
+}
