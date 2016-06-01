@@ -7,6 +7,7 @@ var Client = (function() {
     this.password = password;
     this.baseURL  = 'https://api.placewise.com';
     this.session  = {};
+    this.repo     = {};
   };
 
   Client.prototype.login = function() {
@@ -40,22 +41,19 @@ var Client = (function() {
 
   Client.prototype.get = function(path, params) {
     var self = this;
-    if (!self.session.auth_id) {
-      self.login().then(function(res) {
-        params = params || {};
-        params.page = params.page || { number: 1, size: 10 }
-        params = self.__signParams(params);
-
-        return self.__get(self.baseURL + '/' + path, params);
-      });
-    }
-    else {
+    return new Promise(function(resolve, reject) {
+      if (!self.session.auth_id) {
+        self.login().then(function() {
+          resolve();
+        });
+      }
+    }).then(function(response) {
       params = params || {};
       params.page = params.page || { number: 1, size: 10 }
       params = self.__signParams(params);
 
       return self.__get(self.baseURL + '/' + path, params);
-    }
+    });
   };
 
   Client.prototype.__signParams = function(params) {
@@ -66,20 +64,51 @@ var Client = (function() {
     return params;
   };
 
+  Client.prototype.__unpack = function(body) {
+    var self = this;
+    return new Promise(function(resolve, reject) {
+      var type;
+      if (Array.isArray(body.data)) {
+        type = body.data[0].type;
+        self.repo[type] = self.repo[type] || [];
+        body.data.forEach(function(d) {
+          self.repo[type].push(d);
+        });
+      } else {
+        type = body.data.type;
+        self.repo[type] = self.repo[type] || [];
+        self.repo[type].push(body.data);
+      }
+
+      if (body.included) {
+        body.included.forEach(function(d) {
+          type = d.type;
+          self.repo[type] = self.repo[type] || [];
+          self.repo[type].push(d);
+        });
+      }
+
+      resolve();
+    });
+  };
+
   Client.prototype.__get = function(url, params) {
-    request
-      .get(url)
-      .set('Accept', 'application/vnd.api+json')
-      .query(params)
-      .end(function(err, res) {
-        if (err) {
-          console.log('ERROR!', err);
-        }
-        else {
-          console.log('get', url, res.body)
-          return res.body;
-        }
-      })
+    var self = this;
+    return new Promise(function(resolve, reject) {
+      request
+        .get(url)
+        .set('Accept', 'application/vnd.api+json')
+        .query(params)
+        .end(function(err, res) {
+          if (err) {
+            console.log('ERROR!', err);
+            reject(err);
+          }
+          else {
+            resolve(self.__unpack(res.body));
+          }
+        });
+    });
   };
 
   return Client;
